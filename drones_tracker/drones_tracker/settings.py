@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 from decouple import config
 from django.core.management.utils import get_random_secret_key
@@ -34,6 +35,12 @@ if DEBUG:
     ALLOWED_HOSTS = ['*']
 
 
+GDAL_LIBRARY_PATH = os.environ.get(
+    'GDAL_LIBRARY_PATH', 'C:/OSGeo4W/bin/gdal311.dll')
+SPATIALITE_LIBRARY_PATH = os.environ.get(
+    'SPATIALITE_LIBRARY_PATH', 'C:/OSGeo4W/bin/mod_spatialite.dll')
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,6 +50,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.gis",
+
+    'rest_framework_gis',
+
+    'tracker.apps.TrackerConfig'
 ]
 
 MIDDLEWARE = [
@@ -88,7 +100,6 @@ DATABASES = {
         'PORT': config('DJANGO_DB_PORT', default='5432'),
     }
 }
-
 
 
 # Password validation
