@@ -3,3 +3,4 @@ python-decouple
 psycopg[binary]
 djangorestframework-gis
 paho-mqtt
+drf-yasg
