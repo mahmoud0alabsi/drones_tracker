@@ -1,0 +1,15 @@
+services:
+  postgis:
+    image: postgis/postgis:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=drones_tracker_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret-password
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
