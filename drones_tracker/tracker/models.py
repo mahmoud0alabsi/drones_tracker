@@ -9,8 +9,7 @@ class Drone(models.Model):
     home_distance = models.FloatField(null=False, blank=False)
     horizontal_speed = models.FloatField(null=False, blank=False)
     vertical_speed = models.FloatField(null=False, blank=False)
-    latitude = models.PointField()
-    longitude = models.PointField()
+    location = models.PointField()
     is_online = models.BooleanField(default=False, null=False, blank=False)
     last_seen = models.DateTimeField(null=False, blank=False)
 
@@ -25,11 +24,11 @@ class Drone(models.Model):
 class DroneLog(models.Model):
     drone = models.ForeignKey(Drone, editable=False,
                               blank=False, on_delete=models.CASCADE)
-    payload = models.JSONField(editable=False)
-    timestamp = models.DateTimeField(editable=False, null=False, blank=False)
+    payload = models.JSONField()
+    timestamp = models.DateTimeField(null=False, blank=False)
 
     def __str__(self):
-        return self.serial
+        return self.drone.serial
 
     class Meta:
         app_label = 'tracker'

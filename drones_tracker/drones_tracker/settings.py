@@ -142,3 +142,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MQTT_SERVER = config('MQTT_SERVER', cast=str, default='broker.emqx.io')
+MQTT_PORT = config('MQTT_PORT', cast=int, default=1883)
+MQTT_KEEPALIVE = config('MQTT_KEEPALIVE', cast=int, default=60)
+MQTT_USER = config('MQTT_USER', cast=str, default='')
+MQTT_PASSWORD = config('MQTT_PASSWORD', cast=str, default='')
