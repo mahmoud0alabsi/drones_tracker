@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
 
     'rest_framework_gis',
+    'drf_yasg',
 
     'tracker.apps.TrackerConfig'
 ]
