@@ -1,0 +1,12 @@
+from django.urls import path
+from .api.drone import DronesView, OnlineDronesView, DronesWithinRangeView
+from .api.flight_path import DronesFlightPathView
+
+urlpatterns = [
+    path('drones/', DronesView.as_view(), name='drones'),
+    path('drones/online/', OnlineDronesView.as_view(), name='online_drones'),
+    path('drones/range/', DronesWithinRangeView.as_view(),
+         name='drones_within_range'),
+    path('drones/<str:serial>/path/',
+         DronesFlightPathView.as_view(), name='drone_flight_path'),
+]
