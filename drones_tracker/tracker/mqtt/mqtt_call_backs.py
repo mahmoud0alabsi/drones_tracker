@@ -18,7 +18,6 @@ def store_drone(topic, payload):
         vertical_speed = payload['vertical_speed']
         latitude = payload['latitude']
         longitude = payload['longitude']
-        is_online = True
 
         # create or update object
         drone, _ = Drone.objects.update_or_create(
@@ -28,8 +27,7 @@ def store_drone(topic, payload):
                 'home_distance': home_distance,
                 'horizontal_speed': horizontal_speed,
                 'vertical_speed': vertical_speed,
-                'location': Point(longitude, latitude),
-                'is_online': is_online,
+                'location': Point(latitude, longitude),
                 'last_seen': timezone.now()
             }
         )
