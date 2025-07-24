@@ -35,6 +35,9 @@ class DronesFlightPathView(APIView):
             path_type = request.query_params.get('path-type', 'points')
             if not serial or serial is None:
                 raise ValidationError('You have to specify a drone serial')
+            if path_type not in ('points', 'lines'):
+                raise ValidationError(
+                    'You have to specify a correct path-type, correct choices ["points" or "lines"]')
 
             drone_logs = self.drone_log_repo.get_latest_flight_logs(
                 serial=serial, max_time=DRONE_FLIGHT_MAX_TIME)
