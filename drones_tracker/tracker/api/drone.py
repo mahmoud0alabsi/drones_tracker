@@ -1,10 +1,11 @@
 from decouple import config
 from datetime import datetime, timezone, timedelta
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from tracker.models import Drone
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.exceptions import APIException
 from tracker.serializers.drone import DroneSerializer, OnlineDroneSerializer
 
 IS_ONLINE_DELTA = config('IS_ONLINE_DELTA', cast=int, default=30)
@@ -27,13 +28,26 @@ class DronesView(APIView):
         ],
     )
     def get(self, request):
-        contains = request.query_params.get('contains', '')
-        if contains:
-            drones = Drone.objects.filter(serial__contains=contains)
-        else:
-            drones = Drone.objects.all()
-        serializer = DroneSerializer(drones, many=True)
-        return Response(serializer.data)
+        try:
+            contains = request.query_params.get('contains', '')
+            if contains:
+                drones = Drone.objects.filter(serial__contains=contains)
+            else:
+                drones = Drone.objects.all()
+            serializer = DroneSerializer(drones, many=True)
+            return Response(serializer.data)
+        except APIException as e:
+            return Response(
+                e.get_full_details(),
+                status=e.status_code,
+                exception=True
+            )
+        except Exception as e:
+            return Response(
+                {'message': str(e), },
+                status=500,
+                exception=True
+            )
 
 
 class OnlineDronesView(APIView):
@@ -45,12 +59,25 @@ class OnlineDronesView(APIView):
         tags=["Drones managment"],
     )
     def get(self, request):
-        drones = Drone.objects.filter(
-            last_seen__gte=datetime.now(
-                timezone.utc) - timedelta(seconds=IS_ONLINE_DELTA)
-        )
-        serializer = OnlineDroneSerializer(drones, many=True)
-        return Response(serializer.data)
+        try:
+            drones = Drone.objects.filter(
+                last_seen__gte=datetime.now(
+                    timezone.utc) - timedelta(seconds=IS_ONLINE_DELTA)
+            )
+            serializer = OnlineDroneSerializer(drones, many=True)
+            return Response(serializer.data)
+        except APIException as e:
+            return Response(
+                e.get_full_details(),
+                status=e.status_code,
+                exception=True
+            )
+        except Exception as e:
+            return Response(
+                {'message': str(e), },
+                status=500,
+                exception=True
+            )
 
 
 class DronesWithinRangeView(APIView):
@@ -85,17 +112,30 @@ class DronesWithinRangeView(APIView):
         ],
     )
     def get(self, request):
-        range = float(request.query_params.get('range', ''))
-        latitude = float(request.query_params.get('latitude', ''))
-        longitude = float(request.query_params.get('longitude', ''))
-        if not range or not latitude or not longitude:
-            return Response('You must set all required params.', status=400)
+        try:
+            range = float(request.query_params.get('range', ''))
+            latitude = float(request.query_params.get('latitude', ''))
+            longitude = float(request.query_params.get('longitude', ''))
+            if not range or not latitude or not longitude:
+                return Response('You must set all required params.', status=400)
 
-        drones = Drone.objects.all()
-        drones_within_range = []
-        for drone in drones:
-            if drone.within_range(range, (latitude, longitude)):
-                drones_within_range.append(drone)
+            drones = Drone.objects.all()
+            drones_within_range = []
+            for drone in drones:
+                if drone.within_range(range, (latitude, longitude)):
+                    drones_within_range.append(drone)
 
-        serializer = DroneSerializer(drones_within_range, many=True)
-        return Response(serializer.data)
+            serializer = DroneSerializer(drones_within_range, many=True)
+            return Response(serializer.data)
+        except APIException as e:
+            return Response(
+                e.get_full_details(),
+                status=e.status_code,
+                exception=True
+            )
+        except Exception as e:
+            return Response(
+                {'message': str(e), },
+                status=500,
+                exception=True
+            )

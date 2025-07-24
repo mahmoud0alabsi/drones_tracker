@@ -10,7 +10,6 @@ def store_drone(topic, payload):
     or update drone in (Drone) model
     """
     try:
-        # get required fields
         serial = topic.split('/')[2]
         height = payload['height']
         home_distance = payload['home_distance']
@@ -19,7 +18,6 @@ def store_drone(topic, payload):
         latitude = payload['latitude']
         longitude = payload['longitude']
 
-        # create or update object
         drone, _ = Drone.objects.update_or_create(
             serial=serial,
             defaults={
