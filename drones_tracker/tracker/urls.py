@@ -5,6 +5,8 @@ from .api.drone_within_range import DronesWithinRangeView
 from .api.flight_path import DronesFlightPathView
 from .api.dangerous_drone import DangerousZoneDroneView
 
+app_name = "api"
+
 urlpatterns = [
     path('drones/', DronesView.as_view(), name='drones'),
     path('drones/online/', OnlineDronesView.as_view(), name='online_drones'),

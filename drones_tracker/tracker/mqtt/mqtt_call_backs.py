@@ -4,7 +4,7 @@ from django.contrib.gis.geos import Point
 from tracker.models import Drone, DroneLog
 
 
-def store_drone(topic, payload):
+def store_drone(topic, payload, last_seen=None):
     """
     Parse payload and create
     or update drone in (Drone) model
@@ -18,6 +18,9 @@ def store_drone(topic, payload):
         latitude = payload['latitude']
         longitude = payload['longitude']
 
+        if last_seen is None:
+            last_seen = timezone.now()
+
         drone, _ = Drone.objects.update_or_create(
             serial=serial,
             defaults={
@@ -26,17 +29,17 @@ def store_drone(topic, payload):
                 'horizontal_speed': horizontal_speed,
                 'vertical_speed': vertical_speed,
                 'location': Point(latitude, longitude),
-                'last_seen': timezone.now()
+                'last_seen': last_seen
             }
         )
 
-        store_drone_log(drone, topic, payload)
+        store_drone_log(drone, topic, payload, timestamp=last_seen)
 
     except Exception as e:
         print('Exception: ' + str(e))
 
 
-def store_drone_log(drone, topic, payload):
+def store_drone_log(drone, topic, payload, timestamp):
     """
     Create new log record in (DroneLog) model
     """
@@ -45,7 +48,7 @@ def store_drone_log(drone, topic, payload):
         log = DroneLog.objects.create(
             drone=drone,
             payload=payload,
-            timestamp=timezone.now()
+            timestamp=timestamp
         )
         log.save()
     except Exception as e:
