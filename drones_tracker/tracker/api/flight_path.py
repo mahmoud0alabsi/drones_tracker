@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta, timezone
 from decouple import config
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException, ValidationError
-from tracker.models import DroneLog
+from tracker.repositories.drone_log_repository import DroneLogRepository
+from tracker.strategies.geo_json_path_strategies import GeoJSONStrategyFactory, GeoJSONPathContext
 
 DRONE_FLIGHT_MAX_TIME = config('DRONE_FLIGHT_MAX_TIME', cast=int, default=5)
 DRONE_PACKETS_TIMESTAMP_DELTA = config(
@@ -13,6 +13,8 @@ DRONE_PACKETS_TIMESTAMP_DELTA = config(
 
 
 class DronesFlightPathView(APIView):
+    drone_log_repo = DroneLogRepository()
+
     @swagger_auto_schema(
         operation_summary='Get drone\'s flight path as GeoJSON format.',
         operation_description="Retrieve a drone flight path.",
@@ -30,23 +32,19 @@ class DronesFlightPathView(APIView):
     )
     def get(self, request, serial):
         try:
-            path_type = request.query_params.get('path-type', '')
+            path_type = request.query_params.get('path-type', 'points')
             if not serial or serial is None:
                 raise ValidationError('You have to specify a drone serial')
 
-            drone_logs = DroneLog.objects.filter(
-                drone=serial,
-            ).order_by('-timestamp').filter(
-                timestamp__gte=datetime.now(
-                    timezone.utc) - timedelta(hours=DRONE_FLIGHT_MAX_TIME)
-            )
+            drone_logs = self.drone_log_repo.get_latest_flight_logs(
+                serial=serial, max_time=DRONE_FLIGHT_MAX_TIME)
 
-            flight_logs = self._get_last_flight_logs(drone_logs)
+            latest_flight_logs = self._process_flight_logs(drone_logs)
 
-            if path_type == 'lines':
-                geo_json = self._get_geo_json_path_as_lines(flight_logs)
-            else:
-                geo_json = self._get_geo_json_path_as_points(flight_logs)
+            path_generator = GeoJSONPathContext(path_strategy=None)
+            strategy = GeoJSONStrategyFactory.create_strategy(path_type)
+            path_generator.set_path_strategy(strategy)
+            geo_json = path_generator.get_path(logs=latest_flight_logs)
             return Response(geo_json)
         except APIException as e:
             return Response(
@@ -61,7 +59,7 @@ class DronesFlightPathView(APIView):
                 exception=True
             )
 
-    def _get_last_flight_logs(self, drone_logs):
+    def _process_flight_logs(self, drone_logs):
         try:
             base_log_idx = 0
             first_log_idx = 0
@@ -75,52 +73,5 @@ class DronesFlightPathView(APIView):
                     base_log_idx = idx
 
             return drone_logs[:first_log_idx+1][::-1]
-        except Exception as e:
-            raise e
-
-    def _get_geo_json_path_as_points(self, logs):
-        try:
-            features = []
-            for log in logs:
-                features.append({
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [log.payload['longitude'], log.payload['latitude']]
-                    },
-                    "properties": {
-                        "height": log.payload['height'],
-                        "horizontal_speed": log.payload['horizontal_speed'],
-                        "timestamp": log.timestamp
-                    }
-                })
-
-            return {
-                "type": "FeatureCollection",
-                "features": features
-            }
-        except Exception as e:
-            raise e
-
-    def _get_geo_json_path_as_lines(self, logs):
-        try:
-            coordinates = []
-            for log in logs:
-                coordinates.append(
-                    [log.payload['longitude'], log.payload['latitude']])
-
-            return {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "coordinates": coordinates,
-                            "type": "LineString"
-                        }
-                    }
-                ]
-            }
         except Exception as e:
             raise e

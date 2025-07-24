@@ -1,5 +1,7 @@
 from django.urls import path
-from .api.drone import DronesView, OnlineDronesView, DronesWithinRangeView
+from .api.drone import DronesView
+from .api.online_drone import OnlineDronesView
+from .api.drone_within_range import DronesWithinRangeView
 from .api.flight_path import DronesFlightPathView
 from .api.dangerous_drone import DangerousZoneDroneView
 
