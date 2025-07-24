@@ -21,9 +21,12 @@ class DroneLogRepository(BaseRepository):
         if max_time is None:
             max_time = DRONE_FLIGHT_MAX_TIME
 
+        last_log = self.model.objects.filter(
+            drone=serial,
+        ).order_by('-timestamp').first()
+
         return self.model.objects.filter(
             drone=serial,
         ).order_by('-timestamp').filter(
-            timestamp__gte=datetime.now(
-                timezone.utc) - timedelta(hours=max_time)
+            timestamp__gte=last_log.timestamp - timedelta(hours=max_time)
         )
