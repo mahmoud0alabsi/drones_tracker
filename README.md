@@ -21,7 +21,7 @@ A Django REST application for real-time tracking of drone flights, fetching dron
 - **Swagger/OpenAPI Documentation:** Interactive API docs available at `/swagger/` and `/redoc/`.
 - **Testing:** Includes unit and feature tests for models and API endpoints.
 
-## Notes
+## Design decisions
 - **Flight Path Logic:** Fetches a drone’s recent flight path as GeoJSON (points or lines) using all logs within a time window (default 5 hours) before the latest log timestamp, splitting flights if any gap between logs exceeds 30 seconds.
 - **Dangerous Drones Logic:** Lists drones as dangerous if their height exceeds 500 meters or horizontal speed exceeds 10 m/s.
 
@@ -106,8 +106,21 @@ DRONE_FLIGHT_MAX_TIME=5           # Hours: time window (before latest log) to fe
 DRONE_PACKETS_TIMESTAMP_DELTA=30  # Seconds: max gap between logs to consider them part of the same flight
 ```
 
+> **Note:**
+> The project requires GDAL and SpatiaLite libraries for geospatial features. You may need to set the following environment variables if not using the default paths:
+> 
+> - `GDAL_LIBRARY_PATH` (default: `C:/OSGeo4W/bin/gdal311.dll`)
+> - `SPATIALITE_LIBRARY_PATH` (default: `C:/OSGeo4W/bin/mod_spatialite.dll`)
+>
+> These can be set in your system environment or added to your `.env` file if needed.
+
 ## Running the Project
 
+- **Create and activate a virtual environment:**
+  ```bash
+  python -m venv venv
+  venv\Scripts\activate
+  ```
 1. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
