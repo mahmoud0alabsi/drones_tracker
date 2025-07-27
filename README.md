@@ -69,19 +69,19 @@ Full interactive docs:
 
 ## Database Setup (PostGIS/PostgreSQL)
 
-This project requires a PostgreSQL database with PostGIS extension for geospatial support. The easiest way is to use Docker:
+This project requires a PostgreSQL database with PostGIS extension for geospatial support. Use the provided docker-compose file to set up the database:
 
 ```bash
-docker run --name drone_postgis -e POSTGRES_DB=drone_flight_planner_db \
-  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=secret-password \
-  -p 5432:5432 -d postgis/postgis
+docker-compose up -d
 ```
 
-- Default DB name: `drone_flight_planner_db`
-- Default user: `postgres`
+This will start a PostGIS container with the following default settings:
+- Default DB name: `drones_tracker_db`
+- Default user: `admin`
 - Default password: `secret-password`
+- Port: `5432`
 
-You can change these in your `.env` file (see below).
+You can change these in your `.env` file (see below) or modify the `docker-compose.yaml` file directly.
 
 ## Environment Variables (.env)
 
